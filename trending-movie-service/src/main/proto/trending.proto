@@ -20,3 +20,4 @@ message Movie {
 message TrendingMoviesResponse {
   repeated Movie movies = 1;
 }
+
