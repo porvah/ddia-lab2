@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @GrpcService
-public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.TrendingMoviesServiceImplBase {
+public class TrendingMoviesServiceImpl {
 
     @Autowired
     private JdbcTemplate jdbcTemplate; // For MySQL queries
