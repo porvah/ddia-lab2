@@ -1,6 +1,9 @@
 package com.example.ratingsservice.grpcInterface;
 
+import com.example.ratingsservice.models.MovieDetails;
 import org.lognet.springboot.grpc.GRpcService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
 import trending.TrendingMoviesServiceGrpc;
 import trending.TrendingMoviesRequest;
 import trending.TrendingMoviesResponse;
@@ -19,6 +22,12 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${movie.service.url}")
+    private String movieServiceUrl;
+
     @Override
     public void getTopTrendingMovies(TrendingMoviesRequest request, StreamObserver<TrendingMoviesResponse> responseObserver) {
         int limit = request.getLimit() > 0 ? request.getLimit() : 10; // Default to 10 movies
@@ -29,9 +38,20 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
                 "ORDER BY avg_rating DESC " +
                 "LIMIT ?";
 
-        List<Movie> movies = jdbcTemplate.query(sql, new Object[]{limit}, movieRowMapper())
-                .stream()
-                .collect(Collectors.toList());
+        List<Movie> movies = jdbcTemplate.query(sql, new Object[]{limit}, (rs, rowNum) -> {
+            String movieId = rs.getString("movie_id");
+            double avgRating = rs.getDouble("avg_rating");
+
+            // Fetch movie details from MovieResource
+            MovieDetails movieDetails = fetchMovieDetails(movieId);
+
+            return Movie.newBuilder()
+                    .setId(movieId)
+                    .setTitle(movieDetails.getName()) // Use `name` instead of `title`
+                    .setDescription(movieDetails.getDescription())
+                    .setRating(avgRating)
+                    .build();
+        });
 
         TrendingMoviesResponse response = TrendingMoviesResponse.newBuilder()
                 .addAllMovies(movies)
@@ -41,12 +61,14 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
         responseObserver.onCompleted();
     }
 
-    private RowMapper<Movie> movieRowMapper() {
-        return (rs, rowNum) -> Movie.newBuilder()
-                .setId(rs.getString("movie_id"))
-                .setTitle("Movie " + rs.getString("movie_id"))
-                .setDescription("Trending Movie")
-                .setRating(rs.getDouble("avg_rating"))
-                .build();
+    private MovieDetails fetchMovieDetails(String movieId) {
+        try {
+            String url = movieServiceUrl + "/movies/" + movieId;
+            return restTemplate.getForObject(url, MovieDetails.class);
+        } catch (Exception e) {
+            return new MovieDetails("Unknown Title", "No description");
+        }
     }
 }
+
+
