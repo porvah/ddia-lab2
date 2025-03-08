@@ -1,6 +1,7 @@
 package com.example.ratingsservice.grpcInterface;
 
 import com.example.ratingsservice.models.MovieDetails;
+import com.example.ratingsservice.models.MovieRating;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
@@ -13,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @GRpcService
@@ -28,9 +31,12 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
     @Value("${movie.service.url}")
     private String movieServiceUrl;
 
+    @Value("${rating.service.url}")
+    private String ratingServiceUrl;
+
     @Override
     public void getTopTrendingMovies(TrendingMoviesRequest request, StreamObserver<TrendingMoviesResponse> responseObserver) {
-        int limit = request.getLimit() > 0 ? request.getLimit() : 10; // Default to 10 movies
+        int limit = request.getLimit() > 0 ? request.getLimit() : 10;
 
         String sql = "SELECT movie_id, AVG(rating) AS avg_rating " +
                 "FROM ratings " +
@@ -42,12 +48,11 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
             String movieId = rs.getString("movie_id");
             double avgRating = rs.getDouble("avg_rating");
 
-            // Fetch movie details from MovieResource
             MovieDetails movieDetails = fetchMovieDetails(movieId);
 
             return Movie.newBuilder()
                     .setId(movieId)
-                    .setTitle(movieDetails.getName()) // Use `name` instead of `title`
+                    .setTitle(movieDetails.getName())
                     .setDescription(movieDetails.getDescription())
                     .setRating(avgRating)
                     .build();
@@ -60,7 +65,14 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
-
+    private List<MovieRating> fetchTopRatings(){
+        try{
+            String url = ratingServiceUrl+"/trending/top";
+            return Arrays.asList(Objects.requireNonNull(restTemplate.getForObject(url, MovieRating[].class)));
+        }catch(Exception e){
+            return null;
+        }
+    }
     private MovieDetails fetchMovieDetails(String movieId) {
         try {
             String url = movieServiceUrl + "/movies/" + movieId;
