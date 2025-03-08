@@ -1,9 +1,13 @@
 package com.moviecatalogservice.controllers;
 
 import com.moviecatalogservice.models.CatalogService;
+import com.moviecatalogservice.models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import trending.TrendingMoviesResponse;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
@@ -13,9 +17,17 @@ public class MovieCatalogController {
     CatalogService catalogService;
 
     @GetMapping("/trending")
-    public TrendingMoviesResponse getTrendingMovies(@RequestParam(defaultValue = "10") int limit) {
+    public List<Movie> getTrendingMovies(@RequestParam(defaultValue = "10") int limit) {
         System.out.println("12");
-        System.out.println(catalogService.getTrendingMovies(limit));
-        return catalogService.getTrendingMovies(limit);
+        TrendingMoviesResponse response = catalogService.getTrendingMovies(limit);
+        List<Movie> movies =  response.getMoviesList().stream()
+                .map( movie-> new Movie(
+                        movie.getId(),
+                        movie.getTitle(),
+                        movie.getDescription(),
+                        movie.getRating()
+                ) ).collect(Collectors.toList());
+        System.out.println(movies);
+        return movies;
     }
 }

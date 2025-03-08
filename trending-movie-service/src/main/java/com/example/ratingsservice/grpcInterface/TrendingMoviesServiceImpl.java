@@ -1,11 +1,11 @@
 package com.example.ratingsservice.grpcInterface;
 
+import org.lognet.springboot.grpc.GRpcService;
 import trending.TrendingMoviesServiceGrpc;
 import trending.TrendingMoviesRequest;
 import trending.TrendingMoviesResponse;
 import trending.Movie;
 import io.grpc.stub.StreamObserver;
-import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@GrpcService
+@GRpcService
 public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.TrendingMoviesServiceImplBase {
 
     @Autowired

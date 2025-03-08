@@ -14,7 +14,7 @@ public class CatalogService {
 
     public CatalogService() {
         // Connect to gRPC server
-        this.channel = ManagedChannelBuilder.forAddress("localhost", 9091) // gRPC Server port
+        this.channel = ManagedChannelBuilder.forAddress("localhost", 6565) // gRPC Server port
                 .usePlaintext()
                 .build();
         this.trendingMoviesService = TrendingMoviesServiceGrpc.newBlockingStub(channel);
