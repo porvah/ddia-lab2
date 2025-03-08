@@ -12,11 +12,10 @@ import trending.Movie;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @GRpcService
@@ -58,19 +57,6 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
                             .build();
                 })
                 .collect(Collectors.toList());
-//        List<Movie> movies = jdbcTemplate.query(sql, new Object[]{limit}, (rs, rowNum) -> {
-//            String movieId = rs.getString("movie_id");
-//            double avgRating = rs.getDouble("avg_rating");
-//
-//            MovieDetails movieDetails = fetchMovieDetails(movieId);
-//
-//            return Movie.newBuilder()
-//                    .setId(movieId)
-//                    .setTitle(movieDetails.getName())
-//                    .setDescription(movieDetails.getDescription())
-//                    .setRating(avgRating)
-//                    .build();
-//        });
 
         TrendingMoviesResponse response = TrendingMoviesResponse.newBuilder()
                 .addAllMovies(movieList)
@@ -82,8 +68,6 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
     private List<MovieRating> fetchTopRatings(){
         try{
             String url = ratingServiceUrl+"/trending/top";
-            MovieRating[] movieRatings = restTemplate.getForObject(url, MovieRating[].class);
-            System.out.println(movieRatings[0].getRating());
             return Arrays.asList(restTemplate.getForObject(url, MovieRating[].class));
         }catch(Exception e){
             return null;
