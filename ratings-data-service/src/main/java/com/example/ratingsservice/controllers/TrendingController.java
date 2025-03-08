@@ -30,8 +30,6 @@ public class TrendingController {
         List<MovieRating> movies = jdbcTemplate.query(sql, new Object[]{}, (rs, rowNum) -> {
             String movieId = rs.getString("movie_id");
             double avgRating = rs.getDouble("avg_rating");
-
-
             return new MovieRating(movieId, avgRating);
         });
 

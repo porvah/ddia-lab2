@@ -44,22 +44,36 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
                 "ORDER BY avg_rating DESC " +
                 "LIMIT ?";
 
-        List<Movie> movies = jdbcTemplate.query(sql, new Object[]{limit}, (rs, rowNum) -> {
-            String movieId = rs.getString("movie_id");
-            double avgRating = rs.getDouble("avg_rating");
+        List<MovieRating> movies = fetchTopRatings();
 
-            MovieDetails movieDetails = fetchMovieDetails(movieId);
 
-            return Movie.newBuilder()
-                    .setId(movieId)
-                    .setTitle(movieDetails.getName())
-                    .setDescription(movieDetails.getDescription())
-                    .setRating(avgRating)
-                    .build();
-        });
+        List<Movie> movieList = movies.stream()
+                .map(movieRating -> {
+                    MovieDetails movieDetails = fetchMovieDetails(movieRating.getMovieId());
+                    return Movie.newBuilder()
+                            .setId(movieRating.getMovieId())
+                            .setTitle(movieDetails.getName())
+                            .setDescription(movieDetails.getDescription())
+                            .setRating(movieRating.getRating())
+                            .build();
+                })
+                .collect(Collectors.toList());
+//        List<Movie> movies = jdbcTemplate.query(sql, new Object[]{limit}, (rs, rowNum) -> {
+//            String movieId = rs.getString("movie_id");
+//            double avgRating = rs.getDouble("avg_rating");
+//
+//            MovieDetails movieDetails = fetchMovieDetails(movieId);
+//
+//            return Movie.newBuilder()
+//                    .setId(movieId)
+//                    .setTitle(movieDetails.getName())
+//                    .setDescription(movieDetails.getDescription())
+//                    .setRating(avgRating)
+//                    .build();
+//        });
 
         TrendingMoviesResponse response = TrendingMoviesResponse.newBuilder()
-                .addAllMovies(movies)
+                .addAllMovies(movieList)
                 .build();
 
         responseObserver.onNext(response);
@@ -68,7 +82,9 @@ public class TrendingMoviesServiceImpl extends TrendingMoviesServiceGrpc.Trendin
     private List<MovieRating> fetchTopRatings(){
         try{
             String url = ratingServiceUrl+"/trending/top";
-            return Arrays.asList(Objects.requireNonNull(restTemplate.getForObject(url, MovieRating[].class)));
+            MovieRating[] movieRatings = restTemplate.getForObject(url, MovieRating[].class);
+            System.out.println(movieRatings[0].getRating());
+            return Arrays.asList(restTemplate.getForObject(url, MovieRating[].class));
         }catch(Exception e){
             return null;
         }
