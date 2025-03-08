@@ -7,7 +7,7 @@ import json
 DB_HOST = "localhost"
 DB_NAME = "ratingsdb"
 DB_USER = "root"
-DB_PASS = "ayman123"
+DB_PASS = "Abdo@200341"
 
 # TMDB API Key
 API_KEY = "b0af84324ea41ca39f4311c9156e94e3"
@@ -68,5 +68,5 @@ def insert_ratings(movies):
         conn.close()
 
 if __name__ == "__main__":
-    movies = fetch_movies(API_KEY, target_count=1000)
+    movies = fetch_movies(API_KEY, target_count=999)
     insert_ratings(movies)
