@@ -5,14 +5,16 @@ public class Movie {
     private String movieId;
     private String name;
     private String description;
+    private double rating;
 
     public Movie() {
     }
 
-    public Movie(String movieId, String name, String description) {
+    public Movie(String movieId, String name, String description, double rating) {
         this.movieId = movieId;
         this.name = name;
         this.description = description;
+        this.rating = rating;
     }
 
     public String getDescription() {
@@ -38,4 +40,6 @@ public class Movie {
     public void setName(String name) {
         this.name = name;
     }
+
+    public double getRating(){ return rating; }
 }
